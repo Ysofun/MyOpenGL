@@ -1,6 +1,7 @@
 #include "VertexBuffer.h"
-
 #include "ErrorCatch.h"
+
+#include <glad/glad.h>
 
 VertexBuffer::VertexBuffer(const void* data, unsigned int size)
 {

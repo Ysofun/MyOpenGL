@@ -1,9 +1,9 @@
-﻿#include <GLFW/glfw3.h>
-
-#include "ErrorCatch.h"
+﻿#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #include <iostream>
 
+#include "ErrorCatch.h"
 #include "Camera.h"
 #include "Shader.h"
 
@@ -102,4 +102,20 @@ int main()
     };
 
 
+}
+
+void FrameBufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+}
+
+void MouseCallback(GLFWwindow* window, double xPos, double yPos)
+{
+}
+
+void ScrollCallback(GLFWwindow* window, double xOffset, double yOffset)
+{
+}
+
+void ProcessInput(GLFWwindow* window)
+{
 }

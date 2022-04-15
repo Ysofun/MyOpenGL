@@ -1,6 +1,7 @@
 #include "Shader.h"
+#include "ErrorCatch.h"
 
-#include <ErrorCatch.h>
+#include <glad/glad.h>
 
 #include <fstream>
 #include <sstream>

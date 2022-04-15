@@ -1,6 +1,8 @@
 #pragma once
 
+#include <glad/glad.h>
 #include <vector>
+
 #include "ErrorCatch.h"
 
 struct VertexBufferElement

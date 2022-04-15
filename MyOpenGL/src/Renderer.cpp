@@ -1,6 +1,6 @@
 #include "Renderer.h"
-
 #include "ErrorCatch.h"
+#include <glad/glad.h>
 
 void Renderer::Clear() const
 {

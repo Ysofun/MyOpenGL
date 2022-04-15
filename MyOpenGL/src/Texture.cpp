@@ -1,7 +1,8 @@
 #include "Texture.h"
 #include "ErrorCatch.h"
 
-#include "vendor/stb_image/stb_image.h"
+#include <glad/glad.h>
+#include "stb_image/stb_image.h"
 
 Texture::Texture(const std::string& filepath)
 	: m_RendererID(0), m_FilePath(filepath), 

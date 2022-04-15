@@ -1,6 +1,7 @@
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
 
+#include <glad/glad.h>
 #include "ErrorCatch.h"
 
 VertexArray::VertexArray()
