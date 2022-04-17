@@ -152,29 +152,22 @@ int main()
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             BasicShader.Bind();
-            BasicShader.SetUniformVec3("light.position", LightPos);
+            BasicShader.SetUniformVec3("light.position", camera.m_Position);
+            BasicShader.SetUniformVec3("light.direction", camera.m_Front);
+            BasicShader.SetUniform1f("light.cutOff", cos(glm::radians(12.5f)));
+            BasicShader.SetUniform1f("light.outerCutOff", cos(glm::radians(17.5f)));
             BasicShader.SetUniformVec3("u_ViewPos", camera.m_Position);
 
-            //glm::vec3 lightColor;
-            //lightColor.x = sin(glfwGetTime() * 2.0f);
-            //lightColor.y = sin(glfwGetTime() * 0.7f);
-            //lightColor.z = sin(glfwGetTime() * 1.3f);
-
-            //glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // 降低影响
-            //glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // 很低的影响
-
             // light properties
-            BasicShader.SetUniformVec3("light.ambient", glm::vec3(0.2f));
-            BasicShader.SetUniformVec3("light.diffuse", glm::vec3(0.5f));
+            BasicShader.SetUniformVec3("light.ambient", glm::vec3(0.1f));
+            BasicShader.SetUniformVec3("light.diffuse", glm::vec3(0.8f));
             BasicShader.SetUniformVec3("light.specular", glm::vec3(1.0f));
-
-            // attenuation properties
             BasicShader.SetUniform1f("light.m_Constant", 1.0f);
             BasicShader.SetUniform1f("light.m_Linear", 0.09f);
             BasicShader.SetUniform1f("light.m_Quadratic", 0.032f);
 
             // material properties
-            BasicShader.SetUniform1f("material.shininess", 64.0f);
+            BasicShader.SetUniform1f("material.shininess", 32.0f);
 
             // texture properties
             diffTexture.Bind();
@@ -202,13 +195,13 @@ int main()
                 renderer.Draw(basicVAO, BasicShader);
             }
 
-            lightShader.Bind();
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, LightPos);
-            model = glm::scale(model, glm::vec3(0.2f));
-            glm::mat4 mvp = projection * view * model;
-            lightShader.SetUniformMat4("u_MVP", mvp);
-            renderer.Draw(lightVAO, lightShader);
+            //lightShader.Bind();
+            //model = glm::mat4(1.0f);
+            //model = glm::translate(model, LightPos);
+            //model = glm::scale(model, glm::vec3(0.2f));
+            //glm::mat4 mvp = projection * view * model;
+            //lightShader.SetUniformMat4("u_MVP", mvp);
+            //renderer.Draw(lightVAO, lightShader);
 
             glfwSwapBuffers(window);
             glfwPollEvents();
