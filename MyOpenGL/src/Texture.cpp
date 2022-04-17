@@ -4,6 +4,8 @@
 #include <glad/glad.h>
 #include "stb_image/stb_image.h"
 
+#include <iostream>
+
 Texture::Texture(const std::string& filepath)
 	: m_RendererID(0), m_FilePath(filepath), 
 	m_Width(0), m_Height(0), m_BPP(0)
