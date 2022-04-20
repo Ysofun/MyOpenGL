@@ -1,7 +1,12 @@
 #include "Model.h"
 
 #include "ErrorCatch.h"
+#include "Shader.h"
 #include "Texture.h"
+#include "IndexBuffer.h"
+#include "VertexArray.h"
+#include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
 
 #include <glad/glad.h>
 
@@ -15,12 +20,21 @@ Model::Model(const std::string& path)
 	LoadModel(path);
 }
 
+Model::~Model()
+{
+	for (unsigned int i = 0; i < m_Meshes.size(); i++)
+	{
+		delete m_Meshes[i];
+	}
+}
+
 void Model::Draw(Shader shader)
 {
 	for (unsigned int i = 0; i < m_Meshes.size(); i++)
 	{
-		m_Meshes[i].Draw(shader);
+		m_Meshes[i]->Draw(shader);
 	}
+	//m_Meshes[4]->Draw(shader);
 }
 
 void Model::LoadModel(std::string path)
@@ -35,7 +49,6 @@ void Model::LoadModel(std::string path)
 		return;
 	}
 	m_Directory = path.substr(0, path.find_last_of('/'));
-
 	ProcessNode(scene->mRootNode, scene);
 }
 
@@ -52,11 +65,11 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene)
 	}
 }
 
-Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
+Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
-	std::vector<TextureMesh> textures;
+	std::vector<std::shared_ptr<Texture>> textures;
 
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
@@ -82,16 +95,6 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 			vector2.x = mesh->mTextureCoords[0][i].x;
 			vector2.y = mesh->mTextureCoords[0][i].y;
 			vertex.TexCroods = vector2;
-
-			vector.x = mesh->mTangents[i].x;
-			vector.y = mesh->mTangents[i].y;
-			vector.z = mesh->mTangents[i].z;
-			vertex.Tangent = vector;
-
-			vector.x = mesh->mBitangents[i].x;
-			vector.y = mesh->mBitangents[i].y;
-			vector.z = mesh->mBitangents[i].z;
-			vertex.Bitangent = vector;
 		}
 		else
 		{
@@ -108,26 +111,34 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 			indices.push_back(face.mIndices[j]);
 	}
 
-	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+	if (mesh->mMaterialIndex >= 0)
+	{
+		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-	std::vector<TextureMesh> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-	textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+		std::vector<std::shared_ptr<Texture>> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, 
+			"texture_diffuse");
+		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-	std::vector<TextureMesh> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		//std::vector<std::shared_ptr<Texture>> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, 
+		//	"texture_specular");
+		//textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-	std::vector<TextureMesh> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-	textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+		//std::vector<std::shared_ptr<Texture>> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, 
+		// "texture_normal");
+		//textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-	std::vector<TextureMesh> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-	textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+		//std::vector<std::shared_ptr<Texture>> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, 
+		// "texture_height");
+		//textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+	}
 
-	return { vertices, indices, textures };
+	return new Mesh(vertices, indices, textures);
 }
 
-std::vector<TextureMesh> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string name)
+std::vector<std::shared_ptr<Texture>> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, 
+	std::string typeName)
 {
-	std::vector<TextureMesh> textures;
+	std::vector<std::shared_ptr<Texture>> textures;
 	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
 	{
 		aiString str;
@@ -137,11 +148,10 @@ std::vector<TextureMesh> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureT
 			textures.push_back(m_TexturesCache[str.C_Str()]);
 		else
 		{
-			TextureMesh texture;
-			Texture tex(str.C_Str());
-			texture.id = tex.GetRendererID();
-			texture.type = name;
-			texture.path = str.C_Str();
+			std::string filepath = m_Directory + "/" + str.C_Str();
+			std::cout << filepath << std::endl;
+			std::shared_ptr<Texture> texture = std::make_shared<Texture>(filepath);
+			texture->SetTextureType(typeName);
 			textures.push_back(texture);
 			m_TexturesCache[str.C_Str()] = texture;
 		}

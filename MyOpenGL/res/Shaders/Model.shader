@@ -19,14 +19,32 @@ void main()
 
 #shader fragment
 #version 330 core
+#define MAX_TEXTURE_NUM 8
+
+struct Material
+{
+	sampler2D texture_diffuse[MAX_TEXTURE_NUM];
+	sampler2D texture_specular[MAX_TEXTURE_NUM];
+	sampler2D texture_normal[MAX_TEXTURE_NUM];
+	sampler2D texture_height[MAX_TEXTURE_NUM];
+	int texture_diffuse_num;
+	int texture_specular_num;
+	int texture_normal_num;
+	int texture_height_num;
+};
+
+uniform Material material;
 
 in vec2 TexCroods;
 
 out vec4 Color;
 
-uniform sampler2D texture_diffuse;
-
 void main()
 {
-	Color = texture(texture_diffuse, TexCroods);
+	Color = vec4(0.0f);
+	for (int i = 0; i < material.texture_diffuse_num; i++)
+	{
+		Color += texture(material.texture_diffuse[i], TexCroods);
+	}
+	Color.a = 1.0f;
 }

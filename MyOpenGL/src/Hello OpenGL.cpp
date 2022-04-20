@@ -65,6 +65,9 @@ int main()
         Shader modelShader("res/Shaders/Model.shader");
         Model myModel("res/Objects/nanosuit/nanosuit.obj");
 
+        //Texture texture("res/Objects/nanosuit/glass_dif.png");
+
+        GLCall(glEnable(GL_DEPTH_TEST));
 		while (!glfwWindowShouldClose(window))
 		{
 			float currentFrame = static_cast<float>(glfwGetTime());
@@ -73,7 +76,7 @@ int main()
 
 			ProcessInput(window);
 
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             modelShader.Bind();
@@ -86,7 +89,7 @@ int main()
 
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(0.0f));
-            model = glm::scale(model, glm::vec3(1.0f));
+            model = glm::scale(model, glm::vec3(0.2f));
             modelShader.SetUniformMat4("model", model);
             myModel.Draw(modelShader);
 
