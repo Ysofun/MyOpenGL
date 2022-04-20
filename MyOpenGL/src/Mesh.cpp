@@ -15,7 +15,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
 	SetUpMesh();
 }
 
-void Mesh::Draw(Shader shader)
+void Mesh::Draw(const Shader& shader)
 {
 	unsigned int diffuseNr = 0;
 	unsigned int specularNr = 0;
@@ -28,19 +28,19 @@ void Mesh::Draw(Shader shader)
 		std::string type = m_Textures[i]->GetTextureType();
 		if (type == "texture_diffuse")
 			number = std::to_string(diffuseNr++);
-		//else if (type == "texture_specular")
-		//	number = std::to_string(specularNr++);
+		else if (type == "texture_specular")
+			number = std::to_string(specularNr++);
 		//else if (type == "texture_normal")
 		//	number = std::to_string(normalNr++);
 		//else if (type == "texture_height")
 		//	number = std::to_string(heightNr++);
 
-		shader.SetUniform1i("material." + type + "[" + number + "]", i);
+		shader.SetUniform1i("u_Material." + type + "[" + number + "]", i);
 	}
-	shader.SetUniform1i("material.texture_diffuse_num", diffuseNr);
-	//shader.SetUniform1i("material.texture_specular_num", specularNr);
-	//shader.SetUniform1i("material.texture_normal_num", normalNr);
-	//shader.SetUniform1i("material.texture_height_num", heightNr);
+	shader.SetUniform1i("u_Material.texture_diffuse_num", diffuseNr);
+	shader.SetUniform1i("u_Material.texture_specular_num", specularNr);
+	//shader.SetUniform1i("u_Material.texture_normal_num", normalNr);
+	//shader.SetUniform1i("u_Material.texture_height_num", heightNr);
 
 	m_VAO->Bind();
 	m_IBO->Bind();

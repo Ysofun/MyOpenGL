@@ -25,7 +25,7 @@ public:
 	std::vector<std::shared_ptr<Texture>> m_Textures;
 
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture>> textures);
-	void Draw(Shader shader);
+	void Draw(const Shader& shader);
 private:
 	std::unique_ptr<VertexArray> m_VAO;
 	std::unique_ptr<VertexBuffer> m_VBO;

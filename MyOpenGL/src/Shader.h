@@ -37,12 +37,12 @@ public:
 	void Unbind() const;
 
 	// set uniforms
-	void SetUniform1i(const std::string& name, int value);
-	void SetUniform1f(const std::string& name, float value);
-	void SetUniformVec3(const std::string& name, float v1, float v2, float v3);
-	void SetUniformVec3(const std::string& name, glm::vec3 vector3);
-	void SetUniformVec4(const std::string& name, float v1, float v2, float v3, float v4);
-	void SetUniformMat4(const std::string& name, glm::mat4 matrix);
+	void SetUniform1i(const std::string& name, int value) const;
+	void SetUniform1f(const std::string& name, float value) const;
+	void SetUniformVec3(const std::string& name, float v1, float v2, float v3) const;
+	void SetUniformVec3(const std::string& name, glm::vec3 vector3) const;
+	void SetUniformVec4(const std::string& name, float v1, float v2, float v3, float v4) const;
+	void SetUniformMat4(const std::string& name, glm::mat4 matrix) const;
 private:
 	ShaderProgramSource ParseShader(const std::string& filepath);
 	unsigned int CompileShader(unsigned int type, const std::string& source);

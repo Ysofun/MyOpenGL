@@ -8,6 +8,7 @@
 #include <iostream>
 
 Shader::Shader(const std::string& filepath)
+	: m_FilePath(filepath)
 {
 	ShaderProgramSource source(ParseShader(filepath));
 	m_RendererID = CreateShader(source.VertexSource, source.FragmentSource, source.GeometrySource);
@@ -28,40 +29,40 @@ void Shader::Unbind() const
 	GLCall(glUseProgram(0));
 }
 
-void Shader::SetUniform1i(const std::string& name, int value)
+void Shader::SetUniform1i(const std::string& name, int value) const
 {
 	int location = GetUniformLocation(name);
 	if (location != -1)
 		GLCall(glUniform1i(location, value));
 }
 
-void Shader::SetUniform1f(const std::string& name, float value)
+void Shader::SetUniform1f(const std::string& name, float value) const
 {
 	int location = GetUniformLocation(name);
 	if (location != -1)
 		GLCall(glUniform1f(location, value));
 }
 
-void Shader::SetUniformVec3(const std::string& name, float v1, float v2, float v3)
+void Shader::SetUniformVec3(const std::string& name, float v1, float v2, float v3) const
 {
 	int location = GetUniformLocation(name);
 	if (location != -1)
 		GLCall(glUniform3f(location, v1, v2, v3));
 }
 
-void Shader::SetUniformVec3(const std::string& name, glm::vec3 vector3)
+void Shader::SetUniformVec3(const std::string& name, glm::vec3 vector3) const
 {
 	SetUniformVec3(name, vector3.x, vector3.y, vector3.z);
 }
 
-void Shader::SetUniformVec4(const std::string& name, float v1, float v2, float v3, float v4)
+void Shader::SetUniformVec4(const std::string& name, float v1, float v2, float v3, float v4) const
 {
 	int location = GetUniformLocation(name);
 	if (location != -1)
 		GLCall(glUniform4f(location, v1, v2, v3, v4));
 }
 
-void Shader::SetUniformMat4(const std::string& name, glm::mat4 matrix)
+void Shader::SetUniformMat4(const std::string& name, glm::mat4 matrix) const
 {
 	int location = GetUniformLocation(name);
 	if (location != -1)

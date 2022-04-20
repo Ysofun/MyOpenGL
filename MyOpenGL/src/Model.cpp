@@ -28,7 +28,7 @@ Model::~Model()
 	}
 }
 
-void Model::Draw(Shader shader)
+void Model::Draw(const Shader& shader)
 {
 	for (unsigned int i = 0; i < m_Meshes.size(); i++)
 	{
@@ -119,9 +119,9 @@ Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 			"texture_diffuse");
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-		//std::vector<std::shared_ptr<Texture>> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, 
-		//	"texture_specular");
-		//textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		std::vector<std::shared_ptr<Texture>> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, 
+			"texture_specular");
+		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
 		//std::vector<std::shared_ptr<Texture>> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, 
 		// "texture_normal");

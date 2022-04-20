@@ -9,7 +9,7 @@ class Model
 public:
 	Model(const std::string& path);
 	~Model();
-	void Draw(Shader shader);
+	void Draw(const Shader& shader);
 private:
 	std::vector<Mesh*> m_Meshes;
 	std::string m_Directory;
