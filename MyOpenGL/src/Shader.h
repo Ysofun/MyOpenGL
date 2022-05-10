@@ -39,10 +39,14 @@ public:
 	// set uniforms
 	void SetUniform1i(const std::string& name, int value) const;
 	void SetUniform1f(const std::string& name, float value) const;
+	void SetUniformVec2(const std::string& name, float v1, float v2) const;
+	void SetUniformVec2(const std::string& name, glm::vec2 vector2) const;
 	void SetUniformVec3(const std::string& name, float v1, float v2, float v3) const;
 	void SetUniformVec3(const std::string& name, glm::vec3 vector3) const;
 	void SetUniformVec4(const std::string& name, float v1, float v2, float v3, float v4) const;
 	void SetUniformMat4(const std::string& name, glm::mat4 matrix) const;
+
+	inline unsigned int GetRendererID() const { return m_RendererID; }
 private:
 	ShaderProgramSource ParseShader(const std::string& filepath);
 	unsigned int CompileShader(unsigned int type, const std::string& source);

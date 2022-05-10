@@ -43,6 +43,18 @@ void Shader::SetUniform1f(const std::string& name, float value) const
 		GLCall(glUniform1f(location, value));
 }
 
+void Shader::SetUniformVec2(const std::string& name, float v1, float v2) const
+{
+	int location = GetUniformLocation(name);
+	if (location != -1)
+		GLCall(glUniform2f(location, v1, v2));
+}
+
+void Shader::SetUniformVec2(const std::string& name, glm::vec2 vector2) const
+{
+	SetUniformVec2(name, vector2.x, vector2.y);
+}
+
 void Shader::SetUniformVec3(const std::string& name, float v1, float v2, float v3) const
 {
 	int location = GetUniformLocation(name);
@@ -75,11 +87,14 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 
 	enum class ShaderType
 	{
-		NONE = -1, VERTEX = 0, FRAGMENT = 1, GEOMETRY = 2
+		NONE = -1, VERTEX = 0, GEOMETRY = 1, FRAGMENT = 2
 	};
 
 	std::string line;
 	std::stringstream ss[3];
+	ss[0].str("");
+	ss[1].str("");
+	ss[2].str("");
 	ShaderType type = ShaderType::NONE;
 	while (getline(stream, line))
 	{
@@ -87,10 +102,10 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 		{
 			if (line.find("vertex") != std::string::npos)
 				type = ShaderType::VERTEX;
-			else if (line.find("fragment") != std::string::npos)
-				type = ShaderType::FRAGMENT;
 			else if (line.find("geometry") != std::string::npos)
 				type = ShaderType::GEOMETRY;
+			else if (line.find("fragment") != std::string::npos)
+				type = ShaderType::FRAGMENT;
 		}
 		else
 		{
@@ -123,21 +138,43 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 	return id;
 }
 
-unsigned int Shader::CreateShader(const std::string& vertexSource, const std::string& fragmentSource, 
-	const std::string& geometrySource)
+unsigned int Shader::CreateShader(const std::string& vertexSource, const std::string& geometrySource, 
+	const std::string& fragmentSource)
 {
 	GLCall(unsigned int program = glCreateProgram());
-	unsigned int vs, fs;
-	vs = CompileShader(GL_VERTEX_SHADER, vertexSource);
-	fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSource);
-	GLCall(glAttachShader(program, vs));
-	GLCall(glAttachShader(program, fs));
-
+	unsigned int vs, gs, fs;
+	if (!vertexSource.empty())
+	{
+		vs = CompileShader(GL_VERTEX_SHADER, vertexSource);
+		GLCall(glAttachShader(program, vs));
+	}
+	if (!geometrySource.empty())
+	{
+		gs = CompileShader(GL_GEOMETRY_SHADER, geometrySource);
+		GLCall(glAttachShader(program, gs));
+	}
+		
+	if (!fragmentSource.empty())
+	{
+		fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSource);
+		GLCall(glAttachShader(program, fs));
+	}
+		
 	GLCall(glLinkProgram(program));
 	GLCall(glValidateProgram(program));
 
-	GLCall(glDeleteShader(vs));
-	GLCall(glDeleteShader(fs));
+	if (!vertexSource.empty())
+	{
+		GLCall(glDeleteShader(vs));
+	}
+	if (!geometrySource.empty())
+	{
+		GLCall(glDeleteShader(gs));
+	}
+	if (!fragmentSource.empty())
+	{
+		GLCall(glDeleteShader(fs));
+	}
 
 	return program;
 }

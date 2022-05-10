@@ -1679,5 +1679,17 @@
     </None>
     <None Include="res\Shaders\Model.shader" />
     <None Include="assimp-vc142-mtd.dll" />
+    <None Include="res\Shaders\Box.shader" />
+    <None Include="res\Shaders\FrameBuffer.shader" />
+    <None Include="res\Shaders\FrameBufferScreen.shader" />
+    <None Include="res\Shaders\SingleColor.shader" />
+    <None Include="res\Shaders\CubeMap.shader" />
+    <None Include="res\Shaders\SkyBox.shader" />
+    <None Include="res\Shaders\AdvanceGLSLRed.shader" />
+    <None Include="res\Shaders\AdvanceGLSLGreen.shader" />
+    <None Include="res\Shaders\AdvanceGLSLBlue.shader" />
+    <None Include="res\Shaders\AdvanceGLSLYellow.shader" />
+    <None Include="res\Shaders\9.1Geometry.shader" />
+    <None Include="res\Shaders\DrawInstance.shader" />
   </ItemGroup>
 </Project>

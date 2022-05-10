@@ -14,12 +14,24 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include <Texture.h>
+#include <map>
+#include <vendor/stb_image/stb_image.h>
+#include <sstream>
 
 void FrameBufferSizeCallback(GLFWwindow* window, int width, int height);
 void MouseCallback(GLFWwindow* window, double xPos, double yPos);
 void ScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 void ProcessInput(GLFWwindow* window);
+unsigned int LoadCubeMap(const std::vector<std::string>& cubeMapPath);
+void DrawDepthTest(GLFWwindow* window);
+void DrawOutline(GLFWwindow* window);
+void DrawFrameBuffers(GLFWwindow* window);
+void DrawCubeMap(GLFWwindow* window);
+void DrawUniformBuffer(GLFWwindow* window);
+void DrawGeometry(GLFWwindow* window);
+void DrawInstance(GLFWwindow* window);
 
 const unsigned int SCR_WIDTH = 980;
 const unsigned int SCR_HEIGHT = 720;
@@ -61,141 +73,8 @@ int main()
 		return -1;
 	}
 
-    {
-        float vertices[] = {
-            // positions          // normals           // texture coords
-            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-             0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+    DrawInstance(window);
 
-            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-             0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-
-            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-             0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-             0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-        };
-
-        glm::vec3 pointLightPositions[] = {
-            glm::vec3(0.7f,  0.2f,  2.0f),
-            glm::vec3(2.3f, -3.3f, -4.0f),
-            glm::vec3(-4.0f,  2.0f, -12.0f),
-            glm::vec3(0.0f,  0.0f, -3.0f)
-        };
-
-        Shader modelShader("res/Shaders/Model.shader");
-        Shader lightShader("res/Shaders/LightCube.shader");
-        Model myModel("res/Objects/nanosuit/nanosuit.obj");
-
-        VertexArray lightVAO;
-        VertexBuffer vb(vertices, sizeof(vertices));
-
-        VertexBufferLayout layout;
-        layout.Push<float>(3);
-        layout.Push<float>(3);
-        layout.Push<float>(2);
-
-        lightVAO.AddBuffer(vb, layout);
-
-        Renderer renderer;
-
-        GLCall(glEnable(GL_DEPTH_TEST));
-		while (!glfwWindowShouldClose(window))
-		{
-			float currentFrame = static_cast<float>(glfwGetTime());
-			DeltaTime = currentFrame - LastFrame;
-			LastFrame = currentFrame;
-
-			ProcessInput(window);
-
-			glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            modelShader.Bind();
-            modelShader.SetUniformVec3("u_ViewPos", camera.m_Position);
-            modelShader.SetUniform1f("u_Material.shininess", 64.0f);
-
-            glm::mat4 projection = glm::perspective(glm::radians(camera.m_Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT,
-                0.1f, 100.0f);
-            glm::mat4 view = camera.GetViewMatrix();
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(0.0f));
-            model = glm::scale(model, glm::vec3(0.2f));
-            modelShader.SetUniformMat4("u_Model", model);
-            modelShader.SetUniformMat4("u_View", view);
-            modelShader.SetUniformMat4("u_Projection", projection);
-
-            modelShader.SetUniformVec3("u_DirLight.direction",glm::vec3(1.0f));
-            modelShader.SetUniformVec3("u_DirLight.ambient", 0.05f, 0.05f, 0.05f);
-            modelShader.SetUniformVec3("u_DirLight.diffuse", 0.4f, 0.4f, 0.4f);
-            modelShader.SetUniformVec3("u_DirLight.specular", 0.5f, 0.5f, 0.5f);
-
-            modelShader.SetUniformVec3("u_PointLight.position", 0.7f, 0.2f, 2.0f);
-            modelShader.SetUniformVec3("u_PointLight.ambient", 0.05f, 0.05f, 0.05f);
-            modelShader.SetUniformVec3("u_PointLight.diffuse", 0.8f, 0.8f, 0.8f);
-            modelShader.SetUniformVec3("u_PointLight.specular", 1.0f, 1.0f, 1.0f);
-            modelShader.SetUniform1f("u_PointLight.m_Constant", 1.0f);
-            modelShader.SetUniform1f("u_PointLight.m_Linear", 0.09f);
-            modelShader.SetUniform1f("u_PointLight.m_Quadratic", 0.032f);
-
-            modelShader.SetUniformVec3("u_SpotLight.position", camera.m_Position);
-            modelShader.SetUniformVec3("u_SpotLight.direction", camera.m_Front);
-            modelShader.SetUniformVec3("u_SpotLight.ambient", 0.0f, 0.0f, 0.0f);
-            modelShader.SetUniformVec3("u_SpotLight.diffuse", 1.0f, 1.0f, 1.0f);
-            modelShader.SetUniformVec3("u_SpotLight.specular", 1.0f, 1.0f, 1.0f);
-            modelShader.SetUniform1f("u_SpotLight.m_Constant", 1.0f);
-            modelShader.SetUniform1f("u_SpotLight.m_Linear", 0.09f);
-            modelShader.SetUniform1f("u_SpotLight.m_Quadratic", 0.032f);
-            modelShader.SetUniform1f("u_SpotLight.cutOff", glm::cos(glm::radians(12.5f)));
-            modelShader.SetUniform1f("u_SpotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-
-            myModel.Draw(modelShader);
-            modelShader.Unbind();
-
-            lightShader.Bind();
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(0.7f, 0.2f, 2.0f));
-            model = glm::scale(model, glm::vec3(0.2f));
-            glm::mat4 mvp = projection * view * model;
-            lightShader.SetUniformMat4("u_MVP", mvp);
-            renderer.Draw(lightVAO, lightShader);
-            lightShader.Unbind();
-
-            glfwSwapBuffers(window);
-            glfwPollEvents();
-		}
-    }
     glfwTerminate();
     return 0;
 }
@@ -249,4 +128,923 @@ void ProcessInput(GLFWwindow* window)
         camera.ProcessKeyboard(UP, DeltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         camera.ProcessKeyboard(DOWN, DeltaTime);
+}
+
+void DrawDepthTest(GLFWwindow* window)
+{
+    float cubeVertices[] = {
+        // Back face
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right         
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+        // Front face
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+        // Left face
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-left
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
+        // Right face
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right         
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left     
+        // Bottom face
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-left
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
+        // Top face
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right     
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // bottom-left        
+    };
+    float planeVertices[] = {
+        // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+        -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+         5.0f, -0.5f, -5.0f,  2.0f, 2.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f
+    };
+
+    float transparentVertices[] = {
+        // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+        0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+        0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+        1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+
+        0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+        1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+        1.0f,  0.5f,  0.0f,  1.0f,  0.0f
+    };
+
+
+    Shader boxShader("res/Shaders/Box.shader");
+
+    VertexArray boxVAO;
+    VertexBuffer boxVBO(cubeVertices, sizeof(cubeVertices));
+    VertexBufferLayout boxLayout;
+    boxLayout.Push<float>(3);
+    boxLayout.Push<float>(2);
+    boxVAO.AddBuffer(boxVBO, boxLayout);
+
+    VertexArray floorVAO;
+    VertexBuffer floorVBO(planeVertices, sizeof(planeVertices));
+    VertexBufferLayout floorLayout;
+    floorLayout.Push<float>(3);
+    floorLayout.Push<float>(2);
+    floorVAO.AddBuffer(floorVBO, floorLayout);
+
+    VertexArray transparentVAO;
+    VertexBuffer transparentVBO(transparentVertices, sizeof(transparentVertices));
+    VertexBufferLayout transparentLayout;
+    transparentLayout.Push<float>(3);
+    transparentLayout.Push<float>(2);
+    transparentVAO.AddBuffer(transparentVBO, transparentLayout);
+
+    Texture boxTexture("res/Textures/container2.png");
+    Texture floorTexture("res/Textures/container2_specular.png");
+    Texture transparentTexture("res/Textures/blending_transparent_window.png");
+
+    std::vector<glm::vec3> windows
+    {
+        glm::vec3(-1.5f, 0.0f, -0.48f),
+        glm::vec3(1.5f, 0.0f, 0.51f),
+        glm::vec3(0.0f, 0.0f, 0.7f),
+        glm::vec3(-0.3f, 0.0f, -2.3f),
+        glm::vec3(0.5f, 0.0f, -0.6f)
+    };
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        DeltaTime = currentFrame - LastFrame;
+        LastFrame = currentFrame;
+        ProcessInput(window);
+
+        std::map<float, glm::vec3> sorted;
+        for (unsigned int i = 0; i < windows.size(); i++)
+        {
+            float length = glm::length(camera.m_Position - windows[i]);
+            sorted[length] = windows[i];
+        }
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.m_Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+        boxShader.Bind();
+        boxShader.SetUniform1i("u_Texture", 0);
+        boxShader.SetUniformMat4("u_View", view);
+        boxShader.SetUniformMat4("u_Projection", projection);
+
+        floorVAO.Bind();
+        floorTexture.Bind();
+        boxShader.SetUniformMat4("u_Model", glm::mat4(1.0f));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        floorVAO.Unbind();
+
+        boxVAO.Bind();
+        boxTexture.Bind();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        boxShader.SetUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        boxShader.SetUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        transparentVAO.Bind();
+        transparentTexture.Bind();
+        for (auto it = sorted.rbegin(); it != sorted.rend(); ++it)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, it->second);
+            boxShader.SetUniformMat4("u_Model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawOutline(GLFWwindow* window)
+{
+    float cubeVertices[] = {
+        // positions          // texture Coords
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    };
+    float planeVertices[] = {
+        // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+        -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+         5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+    };
+
+    Shader boxShader("res/Shaders/Box.shader");
+    Shader singleColorShader("res/Shaders/Floor.shader");
+
+    VertexArray boxVAO;
+    VertexBuffer boxVBO(cubeVertices, sizeof(cubeVertices));
+    VertexBufferLayout boxLayout;
+    boxLayout.Push<float>(3);
+    boxLayout.Push<float>(2);
+    boxVAO.AddBuffer(boxVBO, boxLayout);
+
+    VertexArray floorVAO;
+    VertexBuffer floorVBO(planeVertices, sizeof(planeVertices));
+    VertexBufferLayout floorLayout;
+    floorLayout.Push<float>(3);
+    floorLayout.Push<float>(2);
+    floorVAO.AddBuffer(floorVBO, floorLayout);
+
+    Texture boxTexture("res/Textures/container2.png");
+    Texture floorTexture("res/Textures/floor/png");
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        DeltaTime = currentFrame - LastFrame;
+        LastFrame = currentFrame;
+        ProcessInput(window);
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        singleColorShader.Bind();
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.m_Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        singleColorShader.SetUniformMat4("u_View", view);
+        singleColorShader.SetUniformMat4("u_Projection", projection);
+
+        boxShader.Bind();
+        boxShader.SetUniform1i("u_Texture", 0);
+        boxShader.SetUniformMat4("u_View", view);
+        boxShader.SetUniformMat4("u_Projection", projection);
+
+        glStencilMask(0x00);
+
+        floorVAO.Bind();
+        floorTexture.Bind();
+        boxShader.SetUniformMat4("u_Model", glm::mat4(1.0f));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        floorVAO.Unbind();
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+
+        boxVAO.Bind();
+        boxTexture.Bind();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        boxShader.SetUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        boxShader.SetUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+
+        singleColorShader.Bind();
+        float scale = 1.1f;
+        boxVAO.Bind();
+        boxTexture.Bind();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        model = glm::scale(model, glm::vec3(scale));
+        singleColorShader.SetUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(scale));
+        singleColorShader.SetUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        boxVAO.Unbind();
+
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        glEnable(GL_DEPTH_TEST);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawFrameBuffers(GLFWwindow* window)
+{
+    float cubeVertices[] = {
+        // positions          // texture Coords
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    };
+    float planeVertices[] = {
+        // positions          // texture Coords 
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+        -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+         5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+    };
+    float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
+
+    VertexArray cubeVao;
+    VertexBuffer cubeVbo(cubeVertices, sizeof(cubeVertices));
+    VertexBufferLayout cubeLayout;
+    cubeLayout.Push<float>(3);
+    cubeLayout.Push<float>(2);
+    cubeVao.AddBuffer(cubeVbo, cubeLayout);
+
+    VertexArray planeVao;
+    VertexBuffer planeVbo(planeVertices, sizeof(planeVertices));
+    VertexBufferLayout planeLayout;
+    planeLayout.Push<float>(3);
+    planeLayout.Push<float>(2);
+    planeVao.AddBuffer(planeVbo, planeLayout);
+
+    VertexArray quadVao;
+    VertexBuffer quadVbo(quadVertices, sizeof(quadVertices));
+    VertexBufferLayout quadLayout;
+    quadLayout.Push<float>(2);
+    quadLayout.Push<float>(2);
+    quadVao.AddBuffer(quadVbo, quadLayout);
+
+    Texture cubeTexture("res/Textures/container2.png");
+    Texture planeTexture("res/Textures/container2_specular.png");
+
+    Shader shader("res/Shaders/FrameBuffer.shader");
+    Shader screenShader("res/Shaders/FrameBufferScreen.shader");
+
+    unsigned int fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    
+    unsigned int textureColorBuffer;
+    glGenTextures(1, &textureColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
+
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        std::cout << "[OPENGL]::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        DeltaTime = LastFrame - currentFrame;
+        LastFrame = currentFrame;
+
+        ProcessInput(window);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glEnable(GL_DEPTH_TEST);
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        shader.Bind();
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.m_Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        shader.SetUniformMat4("u_View", view);
+        shader.SetUniformMat4("u_Projection", projection);
+
+        // Draw Cube
+        cubeVao.Bind();
+        cubeTexture.Bind();
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        shader.SetUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        shader.SetUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // Draw Plane
+        planeVao.Bind();
+        planeTexture.Bind();
+        shader.SetUniformMat4("u_Model", glm::mat4(1.0f));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        planeVao.Unbind();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDisable(GL_DEPTH_TEST);
+
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        screenShader.Bind();
+        quadVao.Bind();
+        glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawCubeMap(GLFWwindow* window)
+{
+    float cubeVertices[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+    };
+    float skyboxVertices[] = {
+        // positions          
+        -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+        -1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f
+    };
+
+    Shader cubeShader("res/Shaders/CubeMap.shader");
+    Shader skyShader("res/Shaders/SkyBox.shader");
+
+    VertexArray cubeVao;
+    VertexBuffer cubeVbo(cubeVertices, sizeof(cubeVertices));
+    VertexBufferLayout cubeLayout;
+    cubeLayout.Push<float>(3);
+    cubeLayout.Push<float>(3);
+    cubeVao.AddBuffer(cubeVbo, cubeLayout);
+
+    VertexArray skyVao;
+    VertexBuffer skyVbo(skyboxVertices, sizeof(skyboxVertices));
+    VertexBufferLayout skyLayout;
+    skyLayout.Push<float>(3);
+    skyVao.AddBuffer(skyVbo, skyLayout);
+
+    std::vector<std::string> skyBoxPath
+    {
+        "res/Textures/skybox/right.jpg",
+        "res/Textures/skybox/left.jpg",
+        "res/Textures/skybox/top.jpg",
+        "res/Textures/skybox/bottom.jpg",
+        "res/Textures/skybox/front.jpg",
+        "res/Textures/skybox/back.jpg"
+    };
+
+    unsigned int skyTexture = LoadCubeMap(skyBoxPath);
+
+    Model myModel("res/Objects/nanosuit/nanosuit.obj");
+
+    cubeShader.Bind();
+    cubeShader.SetUniform1i("u_Skybox", 0);
+
+    skyShader.Bind();
+    skyShader.SetUniform1i("u_Skybox", 0);
+
+    glEnable(GL_DEPTH_TEST);
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        DeltaTime = LastFrame - currentFrame;
+        LastFrame = currentFrame;
+
+        ProcessInput(window);
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        cubeShader.Bind();
+        glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f));
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.m_Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        cubeShader.SetUniformMat4("u_Model", model);
+        cubeShader.SetUniformMat4("u_View", view);
+        cubeShader.SetUniformMat4("u_Projection", projection);
+        cubeShader.SetUniformVec3("u_CameraPos", camera.m_Position);
+
+        /*cubeVao.Bind();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        cubeVao.Unbind();*/
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture);
+        myModel.Draw(cubeShader);
+
+        glDepthFunc(GL_LEQUAL);
+        skyShader.Bind();
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+        skyShader.SetUniformMat4("u_View", view);
+        skyShader.SetUniformMat4("u_Projection", projection);
+
+        skyVao.Bind();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        skyVao.Unbind();
+        glDepthFunc(GL_LESS);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawUniformBuffer(GLFWwindow* window)
+{
+    float cubeVertices[] = {
+        // positions         
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
+    };
+
+    GLCall(glEnable(GL_DEPTH_TEST));
+    Shader shaderRed("res/Shaders/AdvanceGLSLRed.shader");
+    Shader shaderGreen("res/Shaders/AdvanceGLSLGreen.shader");
+    Shader shaderBlue("res/Shaders/AdvanceGLSLBlue.shader");
+    Shader shaderYellow("res/Shaders/AdvanceGLSLYellow.shader");
+
+    VertexArray cubeVao;
+    VertexBuffer cubeVbo(cubeVertices, sizeof(cubeVertices));
+    VertexBufferLayout layout;
+    layout.Push<float>(3);
+    cubeVao.AddBuffer(cubeVbo, layout);
+
+    unsigned int uniformBlockIndexRed = glGetUniformBlockIndex(shaderRed.GetRendererID(), "Matrices");
+    unsigned int uniformBlockIndexGreen = glGetUniformBlockIndex(shaderGreen.GetRendererID(), "Matrices");
+    unsigned int uniformBlockIndexBlue = glGetUniformBlockIndex(shaderBlue.GetRendererID(), "Matrices");
+    unsigned int uniformBlockIndexYellow = glGetUniformBlockIndex(shaderYellow.GetRendererID(), "Matrices");
+
+    GLCall(glUniformBlockBinding(shaderRed.GetRendererID(), uniformBlockIndexRed, 0));
+    GLCall(glUniformBlockBinding(shaderGreen.GetRendererID(), uniformBlockIndexGreen, 0));
+    GLCall(glUniformBlockBinding(shaderBlue.GetRendererID(), uniformBlockIndexBlue, 0));
+    GLCall(glUniformBlockBinding(shaderYellow.GetRendererID(), uniformBlockIndexYellow, 0));
+
+    unsigned int uboMatrices;
+    GLCall(glGenBuffers(1, &uboMatrices));
+    GLCall(glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices));
+    GLCall(glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW));
+    GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
+
+    GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4)));
+
+    glm::mat4 projection = glm::perspective(45.0f, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    GLCall(glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices));
+    GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection)));
+    GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
+
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        DeltaTime = currentFrame - LastFrame;
+        LastFrame = currentFrame;
+
+        ProcessInput(window);
+
+        GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+        GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+        glm::mat4 view = camera.GetViewMatrix();
+        GLCall(glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices));
+        GLCall(glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view)));
+        GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
+
+        cubeVao.Bind();
+        shaderRed.Bind();
+        glm::mat4 model(1.0f);
+        model = glm::translate(model, glm::vec3(-0.75f, 0.75f, 0.0f));
+        shaderRed.SetUniformMat4("u_Model", model);
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
+        shaderRed.Unbind();
+
+        shaderGreen.Bind();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.75f, 0.75f, 0.0f));
+        shaderGreen.SetUniformMat4("u_Model", model);
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
+        shaderGreen.Unbind();
+
+        shaderBlue.Bind();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-0.75f, -0.75f, 0.0f));
+        shaderBlue.SetUniformMat4("u_Model", model);
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
+        shaderBlue.Unbind();
+
+        shaderYellow.Bind();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.75f, -0.75f, 0.0f));
+        shaderYellow.SetUniformMat4("u_Model", model);
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
+        shaderYellow.Unbind();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawGeometry(GLFWwindow* window)
+{
+    Shader shader("res/Shaders/9.1Geometry.shader");
+    float points[] = {
+        -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // top-left
+         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // top-right
+         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom-right
+        -0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // bottom-left
+    };
+    VertexArray vao;
+    VertexBuffer vbo(points, sizeof(points));
+    VertexBufferLayout layout;
+    layout.Push<float>(2);
+    layout.Push<float>(3);
+    vao.AddBuffer(vbo, layout);
+
+    while (!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        vao.Bind();
+        shader.Bind();
+        glDrawArrays(GL_POINTS, 0, 4);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawInstance(GLFWwindow* window)
+{
+    Shader shader("res/Shaders/DrawInstance.shader");
+    float quadVertices[] = {
+        // 位置          // 颜色
+        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+        -0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
+
+        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+         0.05f,  0.05f,  0.0f, 1.0f, 1.0f
+    };
+
+    glm::vec2 translations[100];
+    int index = 0;
+    float offset = 0.1f;
+    for (int y = -10; y < 10; y += 2)
+    {
+        for (int x = -10; x < 10; x += 2)
+        {
+            glm::vec2 translation;
+            translation.x = (float)x / 10.0f + offset;
+            translation.y = (float)y / 10.0f + offset;
+            translations[index++] = translation;
+        }
+    }
+
+    VertexArray vao;
+    VertexBuffer vbo(quadVertices, sizeof(quadVertices));
+    VertexBufferLayout layout;
+    layout.Push<float>(2);
+    layout.Push<float>(3);
+    vao.AddBuffer(vbo, layout);
+
+    VertexBuffer instanceVbo(translations, sizeof(glm::vec2) * 100);
+    VertexBufferLayout instanceLayout;
+    instanceLayout.Push<float>(2);
+    vao.AddBuffer(instanceVbo, instanceLayout);
+    instanceVbo.Unbind();
+    glVertexAttribDivisor(2, 1);
+
+    while (!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        vao.Bind();
+        shader.Bind();
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+unsigned int LoadCubeMap(const std::vector<std::string>& cubeMapPath)
+{
+    unsigned int textureID;
+    GLCall(glGenTextures(1, &textureID));
+    GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, textureID));
+
+    int width, height, nrChannels;
+    for (unsigned int i = 0; i < cubeMapPath.size(); i++)
+    {
+        unsigned char* data = stbi_load(cubeMapPath[i].c_str(), &width, &height, &nrChannels, 0);
+        std::cout << cubeMapPath[i].c_str() << std::endl;
+        if (data)
+        {
+            GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "[OPENGL]::Warning:: CubeMap failed to load at path:" << cubeMapPath[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
+    return textureID;
 }

@@ -4,7 +4,7 @@
 #include <glad/glad.h>
 #include "ErrorCatch.h"
 
-VertexArray::VertexArray()
+VertexArray::VertexArray() : m_IndexCount(0)
 {
 	GLCall(glGenVertexArrays(1, &m_RendererID));
 }
@@ -23,11 +23,12 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 	for (unsigned int i = 0; i < elements.size(); i++)
 	{
 		const auto& element = elements[i];
-		GLCall(glEnableVertexAttribArray(i));
-		GLCall(glVertexAttribPointer(i, element.count, element.type, 
+		GLCall(glEnableVertexAttribArray(i + m_IndexCount));
+		GLCall(glVertexAttribPointer(i + m_IndexCount, element.count, element.type, 
 			element.normalized, layout.GetStride(), (const void*)offset));
 		offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
 	}
+	m_IndexCount += elements.size();
 }
 
 void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout, const unsigned int& stride)
@@ -39,11 +40,12 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 	for (unsigned int i = 0; i < elements.size(); i++)
 	{
 		const auto& element = elements[i];
-		GLCall(glEnableVertexAttribArray(i));
-		GLCall(glVertexAttribPointer(i, element.count, element.type,
+		GLCall(glEnableVertexAttribArray(i + m_IndexCount));
+		GLCall(glVertexAttribPointer(i + m_IndexCount, element.count, element.type,
 			element.normalized, stride, (const void*)offset));
 		offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
 	}
+	m_IndexCount += elements.size();
 }
 
 void VertexArray::Bind() const
