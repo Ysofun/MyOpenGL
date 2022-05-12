@@ -8,7 +8,7 @@ class VertexArray
 {
 private:
 	unsigned int m_RendererID;
-	int m_IndexCount;
+	unsigned int m_IndexCount;
 public:
 	VertexArray();
 	~VertexArray();

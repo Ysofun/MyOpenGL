@@ -32,9 +32,16 @@ void DrawCubeMap(GLFWwindow* window);
 void DrawUniformBuffer(GLFWwindow* window);
 void DrawGeometry(GLFWwindow* window);
 void DrawInstance(GLFWwindow* window);
+void DrawPlanet(GLFWwindow* window);
+void DrawMSAA(GLFWwindow* window);
+void DrawBlinnPhong(GLFWwindow* window);
+void DrawGammaCorrection(GLFWwindow* window);
 
-const unsigned int SCR_WIDTH = 980;
-const unsigned int SCR_HEIGHT = 720;
+
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+bool GammaEnabled = false;
+bool GammaKeyPressed = false;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float LastX = SCR_WIDTH / 2.0f;
@@ -43,8 +50,6 @@ bool FirstMouse = true;
 
 float DeltaTime = 0.0f;
 float LastFrame = 0.0f;
-
-glm::vec3 LightPos(1.2f, 1.0f, 2.0f);
 
 int main()
 {
@@ -73,7 +78,7 @@ int main()
 		return -1;
 	}
 
-    DrawInstance(window);
+    DrawGammaCorrection(window);
 
     glfwTerminate();
     return 0;
@@ -128,6 +133,16 @@ void ProcessInput(GLFWwindow* window)
         camera.ProcessKeyboard(UP, DeltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         camera.ProcessKeyboard(DOWN, DeltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !GammaKeyPressed)
+    {
+        GammaEnabled = !GammaEnabled;
+        GammaKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
+    {
+        GammaKeyPressed = false;
+    }
 }
 
 void DrawDepthTest(GLFWwindow* window)
@@ -222,9 +237,9 @@ void DrawDepthTest(GLFWwindow* window)
     transparentLayout.Push<float>(2);
     transparentVAO.AddBuffer(transparentVBO, transparentLayout);
 
-    Texture boxTexture("res/Textures/container2.png");
-    Texture floorTexture("res/Textures/container2_specular.png");
-    Texture transparentTexture("res/Textures/blending_transparent_window.png");
+    Texture boxTexture("res/Textures/container2.png", false);
+    Texture floorTexture("res/Textures/container2_specular.png", false);
+    Texture transparentTexture("res/Textures/blending_transparent_window.png", false);
 
     std::vector<glm::vec3> windows
     {
@@ -372,8 +387,8 @@ void DrawOutline(GLFWwindow* window)
     floorLayout.Push<float>(2);
     floorVAO.AddBuffer(floorVBO, floorLayout);
 
-    Texture boxTexture("res/Textures/container2.png");
-    Texture floorTexture("res/Textures/floor/png");
+    Texture boxTexture("res/Textures/container2.png", false);
+    Texture floorTexture("res/Textures/floor/png", false);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -541,8 +556,8 @@ void DrawFrameBuffers(GLFWwindow* window)
     quadLayout.Push<float>(2);
     quadVao.AddBuffer(quadVbo, quadLayout);
 
-    Texture cubeTexture("res/Textures/container2.png");
-    Texture planeTexture("res/Textures/container2_specular.png");
+    Texture cubeTexture("res/Textures/container2.png", false);
+    Texture planeTexture("res/Textures/container2_specular.png", false);
 
     Shader shader("res/Shaders/FrameBuffer.shader");
     Shader screenShader("res/Shaders/FrameBufferScreen.shader");
@@ -1013,6 +1028,345 @@ void DrawInstance(GLFWwindow* window)
         vao.Bind();
         shader.Bind();
         glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawPlanet(GLFWwindow* window)
+{
+    glEnable(GL_DEPTH_TEST);
+
+    Shader shader("res/Shaders/Planet.shader");
+    Shader instanceShader("res/Shaders/Rock.shader");
+
+    Model rock("res/Objects/rock/rock.obj");
+    Model planet("res/Objects/planet/planet.obj");
+
+    unsigned int amount = 50000;
+    glm::mat4* modelMatrices;
+    modelMatrices = new glm::mat4[amount];
+    srand(static_cast<unsigned int>(glfwGetTime()));
+    float radius = 150.0f;
+    float offset = 25.0f;
+    for (unsigned int i = 0; i < amount; i++)
+    {
+        glm::mat4 model(1.0f);
+        float angle = (float)i / float(amount) * 360.0f;
+        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float x = sin(angle) * radius + displacement;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float y = displacement * 0.4f;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float z = cos(angle) * radius + displacement;
+        model = glm::translate(model, glm::vec3(x, y, z));
+
+        float scale = static_cast<float>((rand() % 20) / 100.0f + 0.05f);
+        model = glm::scale(model, glm::vec3(scale));
+
+        float rotAngle = static_cast<float>(rand() % 360);
+        model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+
+        modelMatrices[i] = model;
+    }
+
+    VertexBuffer instanceVbo(&modelMatrices[0], amount * sizeof(glm::mat4));
+    for (unsigned int i = 0; i < rock.m_Meshes.size(); i++)
+    {
+         rock.m_Meshes[i]->m_VAO->Bind();
+
+         VertexBufferLayout layout;
+         layout.Push<float>(4);
+         layout.Push<float>(4);
+         layout.Push<float>(4);
+         layout.Push<float>(4);
+
+         rock.m_Meshes[i]->m_VAO->AddBuffer(instanceVbo, layout);
+         GLCall(glVertexAttribDivisor(3, 1));
+         GLCall(glVertexAttribDivisor(4, 1));
+         GLCall(glVertexAttribDivisor(5, 1));
+         GLCall(glVertexAttribDivisor(6, 1));
+         rock.m_Meshes[i]->m_VAO->Unbind();
+    }
+
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        DeltaTime = currentFrame - LastFrame;
+        LastFrame = currentFrame;
+
+        ProcessInput(window);
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -100.0f));
+
+        shader.Bind();
+        shader.SetUniformMat4("u_Projection", projection);
+        shader.SetUniformMat4("u_View", view);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
+        shader.SetUniformMat4("u_Model", model);
+        planet.Draw(shader);
+        shader.Unbind();
+
+        instanceShader.Bind();
+        instanceShader.SetUniformMat4("u_Projection", projection);
+        instanceShader.SetUniformMat4("u_View", view);
+        instanceShader.SetUniform1i("u_Material.texture_diffuse[0]", 0);
+        for (unsigned int i = 0; i < rock.m_Meshes.size(); i++)
+        {
+            rock.m_Meshes[i]->m_VAO->Bind();
+            rock.m_Meshes[i]->m_IBO->Bind();
+            GLCall(glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(rock.m_Meshes[i]->m_Indices.size()), GL_UNSIGNED_INT, 0, amount));
+            rock.m_Meshes[i]->m_IBO->Unbind();
+            rock.m_Meshes[i]->m_VBO->Unbind();
+        }
+        
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawMSAA(GLFWwindow* window)
+{
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
+    GLfloat cubeVertices[] = {
+        // Positions       
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f
+    };
+
+    VertexArray cubeVao;
+    VertexBuffer cubeVbo(cubeVertices, sizeof(cubeVertices));
+    VertexBufferLayout layout;
+    layout.Push<float>(3);
+    cubeVao.AddBuffer(cubeVbo, layout);
+    cubeVao.Unbind();
+
+    Shader shader("res/Shaders/MSAA.shader");
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        DeltaTime = currentFrame - LastFrame;
+        LastFrame = currentFrame;
+
+        ProcessInput(window);
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        shader.Bind();
+        glm::mat4 projection = glm::perspective(camera.m_Zoom, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+        shader.SetUniformMat4("u_Model", glm::mat4(1.0f));
+        shader.SetUniformMat4("u_View", camera.GetViewMatrix());
+        shader.SetUniformMat4("u_Projection", projection);
+
+        cubeVao.Bind();
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
+        cubeVao.Unbind();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawBlinnPhong(GLFWwindow* window)
+{
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    Shader shader("res/Shaders/BlinnPhongLight.shader");
+
+    float planeVertices[] = {
+        // positions            // normals         // texcoords
+         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+        -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+
+         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+         10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+    };
+
+    VertexArray planeVao;
+    VertexBuffer planeVbo(planeVertices, sizeof(planeVertices));
+    VertexBufferLayout layout;
+    layout.Push<float>(3);
+    layout.Push<float>(3);
+    layout.Push<float>(2);
+    planeVao.AddBuffer(planeVbo, layout);
+
+    Texture texture("res/Textures/container2.png", false);
+
+    shader.Bind();
+    shader.SetUniform1i("floorTexture", 0);
+
+    glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        DeltaTime = currentFrame - LastFrame;
+        LastFrame = currentFrame;
+
+        ProcessInput(window);
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        shader.Bind();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.m_Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        shader.SetUniformMat4("u_View", view);
+        shader.SetUniformMat4("u_Projection", projection);
+
+        shader.SetUniformVec3("viewPos", camera.m_Position);
+        shader.SetUniformVec3("lightPos", lightPos);
+        /*shader.SetUniform1i("blinn", Blinn);*/
+
+        planeVao.Bind();
+        texture.Bind();
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        //std::cout << (Blinn ? "Blinn-Phong" : "Blinn") << std::endl;
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void DrawGammaCorrection(GLFWwindow* window)
+{
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    float planeVertices[] = {
+        // positions            // normals         // texcoords
+         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+        -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+
+         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+         10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+    };
+
+    Shader shader("res/Shaders/GammaCorrection.shader");
+    
+    VertexArray planeVao;
+    VertexBuffer planeVbo(planeVertices, sizeof(planeVertices));
+    VertexBufferLayout layout;
+    layout.Push<float>(3);
+    layout.Push<float>(3);
+    layout.Push<float>(2);
+    planeVao.AddBuffer(planeVbo, layout);
+
+    Texture floorTexture("res/Textures/container2.png", false);
+    Texture floorTextureGammaCorrection("res/Textures/container2.png", true);
+
+    shader.Bind();
+    shader.SetUniform1i("u_FloorTexture", 0);
+
+    glm::vec3 lightPositions[] = {
+        glm::vec3(-3.0f, 0.0f, 0.0f),
+        glm::vec3(-1.0f, 0.0f, 0.0f),
+        glm::vec3( 1.0f, 0.0f, 0.0f),
+        glm::vec3( 3.0f, 0.0f, 0.0f)
+    };
+    glm::vec3 lightColors[] = {
+        glm::vec3(0.25),
+        glm::vec3(0.50),
+        glm::vec3(0.75),
+        glm::vec3(1.00)
+    };
+
+    while (!glfwWindowShouldClose(window))
+    {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        DeltaTime = currentFrame - LastFrame;
+        LastFrame = currentFrame;
+
+        ProcessInput(window);
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        shader.Bind();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.m_Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        shader.SetUniformMat4("u_Projection", projection);
+        shader.SetUniformMat4("u_View", view);
+
+        shader.SetUniformVec3("u_LightPos[0]", lightPositions[0]);
+        shader.SetUniformVec3("u_LightPos[1]", lightPositions[1]);
+        shader.SetUniformVec3("u_LightPos[2]", lightPositions[2]);
+        shader.SetUniformVec3("u_LightPos[3]", lightPositions[3]);
+        shader.SetUniformVec3("u_LightColor[0]", lightColors[0]);
+        shader.SetUniformVec3("u_LightColor[1]", lightColors[1]);
+        shader.SetUniformVec3("u_LightColor[2]", lightColors[2]);
+        shader.SetUniformVec3("u_LightColor[3]", lightColors[3]);
+
+        shader.SetUniformVec3("u_ViewPos", camera.m_Position);
+        shader.SetUniform1i("u_Gamma", GammaEnabled);
+
+        planeVao.Bind();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, GammaEnabled ? floorTextureGammaCorrection.GetRendererID() : floorTexture.GetRendererID());
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        std::cout << (GammaEnabled ? "GammaEnable" : "GammaDisable") << std::endl;
 
         glfwSwapBuffers(window);
         glfwPollEvents();

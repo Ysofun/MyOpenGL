@@ -9,8 +9,9 @@ private:
 	std::string m_FilePath;
 	unsigned char* m_LocalBuffer;
 	int m_Width, m_Height, m_BPP;
+	bool m_GammaCorrection;
 public:
-	Texture(const std::string& filepath);
+	Texture(const std::string& filepath, bool gammaCorrection);
 	~Texture();
 
 	void Bind(unsigned int slot = 0) const;

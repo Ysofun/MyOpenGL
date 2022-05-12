@@ -30,15 +30,15 @@ void Mesh::Draw(const Shader& shader)
 			number = std::to_string(diffuseNr++);
 		else if (type == "texture_specular")
 			number = std::to_string(specularNr++);
-		//else if (type == "texture_normal")
-		//	number = std::to_string(normalNr++);
-		//else if (type == "texture_height")
-		//	number = std::to_string(heightNr++);
+		else if (type == "texture_normal")
+			number = std::to_string(normalNr++);
+		else if (type == "texture_height")
+			number = std::to_string(heightNr++);
 
 		shader.SetUniform1i("u_Material." + type + "[" + number + "]", i);
 	}
 	shader.SetUniform1i("u_Material.texture_diffuse_num", diffuseNr);
-	shader.SetUniform1i("u_Material.texture_specular_num", specularNr);
+	//shader.SetUniform1i("u_Material.texture_specular_num", specularNr);
 	//shader.SetUniform1i("u_Material.texture_normal_num", normalNr);
 	//shader.SetUniform1i("u_Material.texture_height_num", heightNr);
 

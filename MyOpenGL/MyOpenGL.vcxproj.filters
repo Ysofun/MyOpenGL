@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Hello OpenGL.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\glad.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -79,6 +76,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\vendor\stb_image\stb_image_write.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hello OpenGL.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1691,5 +1691,11 @@
     <None Include="res\Shaders\AdvanceGLSLYellow.shader" />
     <None Include="res\Shaders\9.1Geometry.shader" />
     <None Include="res\Shaders\DrawInstance.shader" />
+    <None Include="res\Shaders\Planet.shader" />
+    <None Include="res\Shaders\Rock.shader" />
+    <None Include="res\Shaders\MSAA.shader" />
+    <None Include="res\ReviewShaders\ReviewTriangle.shader" />
+    <None Include="res\Shaders\BlinnPhongLight.shader" />
+    <None Include="res\Shaders\GammaCorrection.shader" />
   </ItemGroup>
 </Project>

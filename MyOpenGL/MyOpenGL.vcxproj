@@ -565,17 +565,23 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc142-mtd.dll" />
+    <None Include="res\ReviewShaders\ReviewTriangle.shader" />
     <None Include="res\Shaders\9.1Geometry.shader" />
     <None Include="res\Shaders\AdvanceGLSLBlue.shader" />
     <None Include="res\Shaders\AdvanceGLSLGreen.shader" />
     <None Include="res\Shaders\AdvanceGLSLRed.shader" />
     <None Include="res\Shaders\AdvanceGLSLYellow.shader" />
     <None Include="res\Shaders\Basic.shader" />
+    <None Include="res\Shaders\BlinnPhongLight.shader" />
     <None Include="res\Shaders\Box.shader" />
     <None Include="res\Shaders\CubeMap.shader" />
     <None Include="res\Shaders\DrawInstance.shader" />
     <None Include="res\Shaders\FrameBuffer.shader" />
     <None Include="res\Shaders\FrameBufferScreen.shader" />
+    <None Include="res\Shaders\GammaCorrection.shader" />
+    <None Include="res\Shaders\MSAA.shader" />
+    <None Include="res\Shaders\Planet.shader" />
+    <None Include="res\Shaders\Rock.shader" />
     <None Include="res\Shaders\SingleColor.shader" />
     <None Include="res\Shaders\LightCube.shader" />
     <None Include="res\Shaders\Model.shader" />

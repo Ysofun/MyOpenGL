@@ -4,7 +4,8 @@
 #include <glad/glad.h>
 #include "ErrorCatch.h"
 
-VertexArray::VertexArray() : m_IndexCount(0)
+VertexArray::VertexArray() 
+	: m_IndexCount(0)
 {
 	GLCall(glGenVertexArrays(1, &m_RendererID));
 }

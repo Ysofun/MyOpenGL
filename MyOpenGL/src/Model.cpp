@@ -123,13 +123,13 @@ Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 			"texture_specular");
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-		//std::vector<std::shared_ptr<Texture>> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, 
-		// "texture_normal");
-		//textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+		std::vector<std::shared_ptr<Texture>> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, 
+		 "texture_normal");
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-		//std::vector<std::shared_ptr<Texture>> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, 
-		// "texture_height");
-		//textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+		std::vector<std::shared_ptr<Texture>> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, 
+		 "texture_height");
+		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
 	return new Mesh(vertices, indices, textures);
@@ -150,7 +150,7 @@ std::vector<std::shared_ptr<Texture>> Model::LoadMaterialTextures(aiMaterial* ma
 		{
 			std::string filepath = m_Directory + "/" + str.C_Str();
 			std::cout << filepath << std::endl;
-			std::shared_ptr<Texture> texture = std::make_shared<Texture>(filepath);
+			std::shared_ptr<Texture> texture = std::make_shared<Texture>(filepath, true);
 			texture->SetTextureType(typeName);
 			textures.push_back(texture);
 			m_TexturesCache[str.C_Str()] = texture;
