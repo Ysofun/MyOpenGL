@@ -3,6 +3,8 @@
 
 #include <glad/glad.h>
 
+#include "glm/gtc/type_ptr.hpp"
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -78,7 +80,7 @@ void Shader::SetUniformMat4(const std::string& name, glm::mat4 matrix) const
 {
 	int location = GetUniformLocation(name);
 	if (location != -1)
-		GLCall(glUniformMatrix4fv(location, 1, GL_FALSE, &matrix[0][0]));
+		GLCall(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix)));
 }
 
 ShaderProgramSource Shader::ParseShader(const std::string& filepath)

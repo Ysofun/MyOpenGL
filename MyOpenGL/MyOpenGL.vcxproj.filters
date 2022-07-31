@@ -1697,5 +1697,10 @@
     <None Include="res\ReviewShaders\ReviewTriangle.shader" />
     <None Include="res\Shaders\BlinnPhongLight.shader" />
     <None Include="res\Shaders\GammaCorrection.shader" />
+    <None Include="res\Shaders\SimpleDepthMap.shader" />
+    <None Include="res\Shaders\DebugDepthQuad.shader" />
+    <None Include="res\Shaders\ShadowMap.shader" />
+    <None Include="res\Shaders\DrawNormalMap.shader" />
+    <None Include="res\Shaders\DrawParallaxMap.shader" />
   </ItemGroup>
 </Project>
